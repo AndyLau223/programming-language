@@ -1,1 +1,31 @@
 = Programming Languages, Part A
+
+== Week - 02
+https://d3c33hcgiwev3.cloudfront.net/_9a49a3d3d0d3db7c72aa819869f7df33_section1sum.pdf?Expires=1672444800&Signature=ap0ZjRH8ml0virWY4j~I39i8XSUhYWYthdKNuVf0s3~LGV8ot61NpX~5mQ4LObLvk~GvzwvujVtpVklD1ftw7Xo6C1lYD4wObZ4AN7n2QmFoM4Dhzvobhy0rjE4dK9jQ7eoBf7DRSvdLu39VhIyehDtxq49qGDCISFriRWEWT8E_&Key-Pair-Id=APKAJLTNE6QMUY6HBC5A[reading material]
+=== Variable Binding
+* **Syntax** is just how you write something 
+
+* **Semantics** is what that something means 
+** **Type-checking** (before program runs)
+** **Evaluation** (as program runs)
+
+* For variable bindings:
+** - Type-check expression and extend **static environment**
+** - Evaluate expression and extend **dynamic environment**
+
+=== Expressions
+
+Every kind of expression has: 
+1. Syntax
+2. Type-checking rules
+2.1 Produces a type or fails(with a bad error message)
+2.2 Type so far: int, bool, unit 
+3. Evaluation rules(used only on things that type-check)
+3.1 Produces a value(or exception or infinite-loop)
+
+=== Function Bindings
+
+=== Pairs(2-tuples)
+
+=== List 
+
