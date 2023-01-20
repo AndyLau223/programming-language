@@ -1,7 +1,11 @@
 = Programming Languages, Part A
 
+
+
 == Week - 02
-https://d3c33hcgiwev3.cloudfront.net/_9a49a3d3d0d3db7c72aa819869f7df33_section1sum.pdf?Expires=1672444800&Signature=ap0ZjRH8ml0virWY4j~I39i8XSUhYWYthdKNuVf0s3~LGV8ot61NpX~5mQ4LObLvk~GvzwvujVtpVklD1ftw7Xo6C1lYD4wObZ4AN7n2QmFoM4Dhzvobhy0rjE4dK9jQ7eoBf7DRSvdLu39VhIyehDtxq49qGDCISFriRWEWT8E_&Key-Pair-Id=APKAJLTNE6QMUY6HBC5A[reading material]
+
+First, everything type check, and then everything got run(evaluation).
+ 
 === Variable Binding
 * **Syntax** is just how you write something 
 
@@ -15,17 +19,311 @@ https://d3c33hcgiwev3.cloudfront.net/_9a49a3d3d0d3db7c72aa819869f7df33_section1s
 
 === Expressions
 
-Every kind of expression has: 
+Expressions can be arbitrarily large since any sub-expression can contain sub-sub-expressions.etc.
+
+Every kind of expression has 
 1. Syntax
 2. Type-checking rules
-2.1 Produces a type or fails(with a bad error message)
-2.2 Type so far: int, bool, unit 
+    2.1 Produces a type or fails(with a bad error message)
+    2.2 Types so far: int bool unit 
 3. Evaluation rules(used only on things that type-check)
-3.1 Produces a value(or exception or infinite-loop)
+    3.1 Produces a value(or exception or infinite-loop)
 
-=== Function Bindings
+==== Variable 
 
-=== Pairs(2-tuples)
+Syntax:
+    sequence of letters, digits,_, not starting with digit
 
+Type-checking:
+    Look up type in current static environment 
+        - if not there, fail
+
+Evaluation:
+    Look up value in current dynamic environment
+
+===== Example
+
+Syntax: 
+    e1 + e2 where e1 and e2 are expressions
+
+Type-checking:
+    if e1 and e2 have type int, then e1 + e2 has type int
+
+Evaluation:
+    if e1 evaluates to v1 and e2 evaluates to v2, then e1 + e2 evaluates to sum of v1 and v2.
+
+
+Syntax: 
+    if e1 then e2 else e3
+    where if, then , and else are keywords and 
+    e1, e2, and e3 are sub-expressions
+
+Type-checking:
+    first e1 must have type bool 
+    e2 and e3 can have any type(let's call it t ), but they must have the same type t.
+    the type of the entire expression is also t 
+
+Evaluation rules:
+    first evaluate e1 to a value call it v1 
+    if it's true, evaluate e1 and that result is the whole expression's result.
+    else, evaluate e3 and that result is the whole expression's result.
+
+
+
+==== Values
+
+* All values are expressions
+
+* Not all expressions are values 
+
+* Every value "evaluates to itself" in "zero steps"
+
+* Example
+    - 34,16,41 have type int 
+    - true, false have type bool
+    - () has type unit
+
+
+=== Pragmatics
+https://en.wikipedia.org/wiki/Read%E2%80%93eval%E2%80%93print_loop[REPL]
+
+- How do we run programs using the REPL?
+- What happens when we make mistakes?
+
+work on developing resilience to mistakes
+
+==== The REPL
+
+* Read-Eval-Print-Loop is well named
+* Can just treat it as a strange/convenient way to run programs
+    - But more convenient for quick try-something-out
+    - Then move things over to a testing file for easy reuse
+
+* For reasons discussed in next segment, do not use **user** without restarting the REPL session
+    - (But using it for multiple files at beginning of session is okay)
+
+==== Errors
+
+Your mistake could be:
+    - Syntax: What you wrote means nothing or not the construct you intended
+    - Type-checking: What you wrote does not type-check 
+    - Evaluation: It runs but produces wrong answer, or an exception, or an infinite loop
+    
+Keep these straight when debugging even if sometimes one kind of mistake appears to be another.
+
+=== Shadowing 
+
+Multiple bindings of same variable:
+    Multiple variable bindings of the same variable is often poor style
+        - Often confusing 
+
+    But it's an instructive exercise 
+        - Helps explain how the environment "works"
+        - Helps explain how a variable binding "works"
+
+    (Emphasize this how to lay the foundation for first-class functions)
+    https://en.wikipedia.org/wiki/First-class_function[First-class function]
+
+
+val a = 1 
+val b = a // b is bound to 1 
+val a = 2
+- Expressions in variable bindings are evaluated "eagerly"
+    - Before the variable binding "finishes"
+    - Afterwards, the expression producing the value is irrelevant 
+
+- There is no way to "assign to" a variable in ML 
+    - Can only shadow it in a later environment 
+
+=== Function 
+
+==== Function definitions 
+
+Function: the most important building block in the whole course
+    - Like java methods, have arguments and result 
+    - but no classes, this, return, etc
+
+Example function binding:
+    fun pow(x : int, y : int) = 
+        if y = 0 
+        then 1 
+        else x * pow(x, y-1)
+
+==== Function bindings
+
+* Syntax: fun x0 (x1: t1,...,xn : tn) = e 
+
+* Evaluation: A function is a value!(No evaluation yet)
+    - Adds x0 to environment so later expressions can call it
+    - Function-call semantics will also allow recursion 
+
+* Type-checking:
+    - Adds binding x0 b: (t1 * ... * tn) -> t if:
+    - Can type-check body e have type t in the static environment containing:
+        - "Enclosing" static environment (earlier bindings)
+        - x1 : t1, ..., xn : tn (arguments with their types)
+        - x0 : (t1 * ... * tn) -> t (for recursion)
+
+
+More on type-checking
+    - New kind of type: (t1 * ... * tn) -> t
+        - Result type on right 
+        - The overall type-checking result is to give x0 this type in rest of program(unlike java, not for earlier bindings)
+        - Arguments can be used only in e 
+
+
+    - Because evaluation of a call to x0 will return result of evaluating, the return type of x0 is the type of e 
+
+    - The type-checker "magically" figures out t if such t exists 
+        - Lat
+
+Syntax: e0 (e1,...,en)
+    - Type-checking:
+        if:
+            - e0 has some type (t1,...,tn) -> t 
+            - e1 has type t1,..., en has type tn
+        then:
+            - e0(e1,...,en) has type t
+            Example: pow(x,y-1) in previous example has type int
+
+Evaluation: e0(e1,...,en)
+    - (under current dynamic environment) evaluate e0 to a function  fun x0(x1 : t1, ... , xn : tn) = e 
+        - Since call type-checked, result will be a function
+    - (under current dynamic environment,) evaluate arguments to values v1, ... ,vn
+    - Result is evaluation of e in an environment extended to map x1 to v1,..., xn to vn 
+
+=== Tuples and lists 
+
+So far: numbers, booleans, conditionals, variables, functions 
+
+Now: 
+    - Tuples: fixed "number of pieces" that may have different types 
+Coming soon:
+    - Lists: any "number of pieces" that all have the same type 
+
+Later: 
+    - Other more general ways to create compound data 
+
+==== Tuples 
+
+Syntax: (e1,e2)
+
+Evaluation: Evaluate e1 to v1, and e1 to v2; result is (v1, v2)
+    - A pair of values is a value 
+
+Type-checking: 
+    - if e1 has type ta and e2 has type tb, then pair expression has type ta * tb 
+    - A new kind of type
+
+You can have tuples with more than two parts
+    - A new feature: a generalization of pairs
+
+* (e1,e2,...,en)
+* ta * tb * ... * tn 
+* #1 e, #2 e, #3 e, ...
 === List 
 
+* Despite nested tuples, the type of a variable still "commits" to a particular "amount" of data.
+
+In contrast, a list:
+    - Can have any number of elements
+    - But all list elements have the same type
+
+==== Building Lists
+
+* The empty list is a value: []
+
+* In general, a list of values is a value; elements separated by commas: [v1,v2,v3,...,vn]
+
+* If e1 evaluates to v and e2 evaluates to a list [v1,...,vn], then e1::e2 evaluates to [v,..,vn]
+
+if e evaluates to [v1,v2,...,vn] then hd e evaluates to v1 
+
+if e evaluates to  [v1,v2,...,vn] then tl e evaluates to [v2,...,vn]
+
+
+=== Let Expressions
+
+The big thing we need: local bindings
+    - For style and convenience 
+
+Syntax: _let_ b1 b2 ... bn _in_ e _end_ 
+ - Each _bi_ is any binding and e is any expression 
+
+Type-checking: Type-check each _bi_ and _e_ in a static environment that includes the previous bindings. Type of whole let-expression is the type of _e_
+
+Evaluation: Evaluate each _bi_ and _e_ in a dynamic environment that includes the previous bindings. Result of whole let-expression is result of evaluating _e_.
+
+what's new 
+
+* What's new scope: where a binding is in the environment 
+    - in later bindings and body of the let-expression 
+        - (Unless a later or nested binding shadows it)
+    - Only in later bindings and body of the let-expression
+
+* Nothing else is new:
+    - Can put any binding we want, even function bindings
+    - Type-check and evaluate just like at "top-level"
+
+
+=== Nested Functions
+
+* Functions can use bindings in the environment where they are defined:
+    - Bindings from "outer" environments
+        - Such as parameters to the outer function 
+    - Earlier bindings in the let-expression
+
+* Unnecessary parameters are usually bad style 
+
+* Good style to define helper functions inside the functions they help if they are:
+    - Unlikely to be useful elsewhere 
+    - Likely to be misused if available elsewhere 
+    - Likely to be changed or removed later 
+
+* A fundamental trade-off in code design: reusing code saves effort and avoid bugs, but makes the reused code harder to change later.
+
+=== Options
+
+Having _max_ return 0 for the empty list is really awful 
+    - Could raise an exception 
+    - Could return a zero-element or one-element list 
+        - That works but is poor style because the built-in support for options expresses this situation directly
+
+* t option is a type for any type t 
+    -(much like t list, but a different type, not a list )
+
+* Building:
+    - _NONE_ has type `a option (much like [] has type `a list)
+    - _SOME_ e has type t option if e has type t (much like e :: [])
+
+* Accessing:
+    - _isSome_ has type `a option -> bool 
+    - _valOf_ has type `a option -> `a (exception if given NONE)
+
+=== Booleans and Comparison Operations
+
+* Combining Boolean expressions (and, or, not)
+* Comparison operations
+
+
+* e1 andalso e2, e1 orelse e2, not e1 
+    - Type-checking: e1 and e2 must have type bool 
+    - Evaluation: if result of e1 is false then false else result of e2 
+* Syntax is many languages is e1 && e2, e1 || e2, !e
+    - && and || don't exist in ML and ! means something different 
+* "Short-circuiting" evaluation means _andalso_ and _orelse_ are not function, but _not_ is just a pre-defined function
+
+
+* Comparison 
+    - = <> > < >= <= 
+    - > < >= <= can be used with real, but not 1 int and 1 real
+    - = <> can be used with any "equality type" but not with real 
+        - Let's not discuss equality types yet
+
+=== A valuable non-feature: no mutation 
+
+https://web.mit.edu/6.005/www/fa15/classes/09-immutability/#:~:text=The%20answer%20is%20that%20immutable,much%20harder%20to%20enforce%20contracts.[why immutation is important]
+A major aspect and contribution of functional programming:
+    - Not being able to assign to variables or parts of tuples and lists.
+
+==== ML vs. Imperative Languages
